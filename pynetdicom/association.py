@@ -1645,6 +1645,10 @@ class Association(threading.Thread):
         )
         transfer_syntax = context.transfer_syntax[0]
 
+        # Maintain the original Transfer Syntax if possible
+        if dataset.file_meta.TransferSyntaxUID in context.transfer_syntax:
+            transfer_syntax = dataset.file_meta.TransferSyntaxUID
+
         # Build C-STORE request primitive
         #   (M) Message ID
         #   (M) Affected SOP Class UID
