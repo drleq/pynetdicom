@@ -358,6 +358,7 @@ class Association(threading.Thread):
                     possible_contexts = [cx]
                     break
 
+        matched_cx = None
         for cx in possible_contexts:
             if cx.abstract_syntax != ab_syntax:
                 continue
@@ -370,14 +371,25 @@ class Association(threading.Thread):
                 continue
 
             # Allow us to skip the transfer syntax check
-            if tr_syntax and tr_syntax != cx.transfer_syntax[0]:
-                # Compressed transfer syntaxes are not convertable
-                if (tr_syntax.is_compressed
-                        or cx.transfer_syntax[0].is_compressed):
-                    continue
+            if tr_syntax:
+                if tr_syntax == cx.transfer_syntax[0]:
+                    # An exact match is always the preference
+                    matched_cx = cx
+                    break
+
+                if tr_syntax != cx.transfer_syntax[0]:
+                    # Compressed transfer syntaxes are not convertable
+                    if (tr_syntax.is_compressed
+                            or cx.transfer_syntax[0].is_compressed):
+                        continue
 
             # Only a valid presentation context can reach this point
-            return cx
+            if matched_cx is None:
+                matched_cx = cx
+
+        # Check if we have found a suitable match
+        if matched_cx is not None:
+            return matched_cx
 
         role = role or 'scu'
         msg = (
